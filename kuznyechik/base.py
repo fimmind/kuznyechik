@@ -6,7 +6,7 @@ Sources:
 - GOST R 34.12-2015 (https://www.rfc-editor.org/rfc/rfc7801.html)
 """
 
-from galois import G
+from kuznyechik.galois import G
 from operator import xor
 
 pi_vec = bytearray([
