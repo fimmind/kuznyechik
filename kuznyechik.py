@@ -13,15 +13,15 @@ import secrets
 
 
 def to_bytes(x):
-    """Convert an integer to the corresponding array of 16 bytes."""
-    res = []
+    """Convert a 128-bit integer to the corresponding array of 16 bytes"""
+    res = bytearray()
     while x:
         res.append(x % 256)
         x >>= 8
     while len(res) < 16:
         res.append(0)
     res.reverse()
-    return res or [0]
+    return res
 
 
 def from_bytes(bytes):
@@ -32,7 +32,7 @@ def from_bytes(bytes):
     return res
 
 
-pi_vec = [
+pi_vec = bytearray([
     252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
     233, 119, 240, 219, 147, 46, 153, 186, 23, 54, 241, 187, 20, 205, 95, 193,
     249, 24, 101, 90, 226, 92, 239, 33, 129, 28, 60, 66, 139, 1, 142, 79, 5,
@@ -49,8 +49,8 @@ pi_vec = [
     73, 76, 63, 248, 254, 141, 83, 170, 144, 202, 216, 133, 97, 32, 113, 103,
     164, 45, 43, 9, 91, 203, 155, 37, 208, 190, 229, 108, 82, 89, 166, 116,
     210, 230, 244, 180, 192, 209, 102, 175, 194, 57, 75, 99, 182
-]
-pi_inv_vec = [
+])
+pi_inv_vec = bytearray([
     165, 45, 50, 143, 14, 48, 56, 192, 84, 230, 158, 57, 85, 126, 82, 145, 100,
     3, 87, 90, 28, 96, 7, 24, 33, 114, 168, 209, 41, 198, 164, 63, 224, 39,
     141, 12, 130, 234, 174, 180, 154, 99, 73, 229, 66, 228, 21, 183, 200, 6,
@@ -67,7 +67,7 @@ pi_inv_vec = [
     243, 62, 61, 189, 138, 136, 221, 205, 11, 19, 152, 2, 147, 128, 144, 208,
     36, 52, 203, 237, 244, 206, 153, 16, 68, 64, 146, 58, 1, 38, 18, 26, 72,
     104, 245, 129, 139, 199, 214, 32, 10, 8, 0, 76, 215, 116
-]
+])
 l_vec = [
     G(x) for x in
     [148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148, 1]
@@ -90,19 +90,19 @@ def l(x):
 
 
 def X(k, x):
-    return list(map(xor, k, x))
+    return bytearray(map(xor, k, x))
 
 
 def S(x):
-    return list(map(pi, x))
+    return bytearray(map(pi, x))
 
 
 def S_inv(x):
-    return list(map(pi_inv, x))
+    return bytearray(map(pi_inv, x))
 
 
 def R(x):
-    return [l(x)] + x[:15]
+    return bytearray([l(x)]) + x[:15]
 
 
 def L(x):
@@ -112,7 +112,7 @@ def L(x):
 
 
 def R_inv(x):
-    return x[1:] + [l(x[1:] + x[:1])]
+    return x[1:] + bytearray([l(x[1:] + x[:1])])
 
 
 def L_inv(x):
