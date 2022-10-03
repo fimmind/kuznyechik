@@ -11,27 +11,6 @@ from galois import G
 from operator import xor
 import secrets
 
-
-def to_bytes(x):
-    """Convert a 128-bit integer to the corresponding array of 16 bytes"""
-    res = bytearray()
-    while x:
-        res.append(x % 256)
-        x >>= 8
-    while len(res) < 16:
-        res.append(0)
-    res.reverse()
-    return res
-
-
-def from_bytes(bytes):
-    """The inverse of `to_bytes`"""
-    res = 0
-    for b in bytes:
-        res = res * 256 + b
-    return res
-
-
 pi_vec = bytearray([
     252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
     233, 119, 240, 219, 147, 46, 153, 186, 23, 54, 241, 187, 20, 205, 95, 193,
@@ -126,7 +105,7 @@ def F(k, y, x):
 
 
 def expand_key(key):
-    key = to_bytes(key)
+    key = key.to_bytes(32, "big")
     K = [key[:16], key[16:]]
     for i in range(4):
         K.extend(K[-2:])
@@ -135,7 +114,7 @@ def expand_key(key):
     return K
 
 
-C = [L(to_bytes(i)) for i in range(1, 33)]
+C = [L(i.to_bytes(16, "big")) for i in range(1, 33)]
 
 
 def encrypt_block(K, x):
@@ -164,9 +143,9 @@ def CTR(key, IV, message):
     """(En|De)crypt a message given as a bytearray using the Counter mode"""
     K = expand_key(key)
     out = bytearray()
-    counter = from_bytes(list(IV) + [0 for _ in range(8)])
+    counter = int.from_bytes(list(IV) + [0 for _ in range(8)], "big")
     for block in chunk(message, 16):
-        mask = encrypt_block(K, to_bytes(counter))[:len(block)]
+        mask = encrypt_block(K, counter.to_bytes(16, "big"))[:len(block)]
         out.extend(map(xor, block, mask))
         counter += 1
     return out
