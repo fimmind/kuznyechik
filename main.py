@@ -11,8 +11,7 @@ def main():
     enc_msg = encript_block(K, msg)
     dec_msg = decript_block(K, enc_msg)
 
-    for i in [msg, enc_msg, dec_msg]:
-        print(hex(i))
+    print(f"{msg     = :x}\n{enc_msg = :x}\n{dec_msg = :x}")
 
 
 if __name__ == "__main__":
