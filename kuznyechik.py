@@ -9,6 +9,7 @@ Sources:
 
 from galois import G
 from operator import xor
+import secrets
 
 
 def to_bytes(x):
@@ -137,7 +138,7 @@ def expand_key(key):
 C = [L(to_bytes(i)) for i in range(1, 33)]
 
 
-def encrypt_raw_block(K, x):
+def encrypt_block(K, x):
     """Encript a single block represented as an array of 16 bytes"""
     for i in range(9):
         x = L(S(X(K[i], x)))
@@ -145,7 +146,7 @@ def encrypt_raw_block(K, x):
     return x
 
 
-def decrypt_raw_block(K, x):
+def decrypt_block(K, x):
     """Decript a single block represented as an array of 16 bytes"""
     x = X(K[9], x)
     for i in range(9):
@@ -153,11 +154,30 @@ def decrypt_raw_block(K, x):
     return x
 
 
-def encrypt_block(K, x):
-    """Encript a single block represented as a 128-bit value"""
-    return from_bytes(encrypt_raw_block(K, to_bytes(x)))
+def chunk(arr, n):
+    """Chunk an array into even parts"""
+    for i in range(0, len(arr), n):
+        yield arr[i:i + n]
 
 
-def decrypt_block(K, x):
-    """Decript a single block represented as a 128-bit value"""
-    return from_bytes(decrypt_raw_block(K, to_bytes(x)))
+def CTR(key, IV, message):
+    """(En|De)crypt a message given as a bytearray using the Counter mode"""
+    K = expand_key(key)
+    out = bytearray()
+    counter = from_bytes(list(IV) + [0 for _ in range(8)])
+    for block in chunk(message, 16):
+        mask = encrypt_block(K, to_bytes(counter))[:len(block)]
+        out.extend(map(xor, block, mask))
+        counter += 1
+    return out
+
+
+def encrypt_CTR(key, message):
+    """Encrypt a message given as a bytearray using the Counter mode"""
+    IV = secrets.token_bytes(8)
+    return IV, CTR(key, IV, message)
+
+
+def decrypt_CTR(key, IV, message):
+    """Decrypt a message given as a bytearray using the Counter mode"""
+    return CTR(key, IV, message)
