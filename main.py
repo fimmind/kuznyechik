@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 """A relatively simple implementation of Kuznyechik cypher"""
 
-from kuznyechik import decrypt_CTR
-from kuznyechik import encrypt_CTR
+from kuznyechik import ctr
 import lorem
 
 
@@ -12,10 +11,10 @@ def main():
     msg = lorem.paragraph()
     print(f"\n    Message:\n{msg}\n")
 
-    IV, raw_enc_msg = encrypt_CTR(KEY, msg.encode(encoding='utf'))
+    IV, raw_enc_msg = ctr.encrypt(KEY, msg.encode(encoding='utf'))
     print(f"\n    Raw encrypted message:\n{raw_enc_msg}\n")
 
-    raw_dec_msg = decrypt_CTR(KEY, IV, raw_enc_msg)
+    raw_dec_msg = ctr.decrypt(KEY, IV, raw_enc_msg)
     print(f"\n    Raw decrypted message:\n{raw_dec_msg}\n")
 
     dec_msg = raw_dec_msg.decode('utf')

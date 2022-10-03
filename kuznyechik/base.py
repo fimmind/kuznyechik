@@ -4,12 +4,10 @@ An implementation of Kuznyechik cypher
 
 Sources:
 - GOST R 34.12-2015 (https://www.rfc-editor.org/rfc/rfc7801.html)
-- GOST R 34.13-2015
 """
 
 from galois import G
 from operator import xor
-import secrets
 
 pi_vec = bytearray([
     252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
@@ -131,32 +129,3 @@ def decrypt_block(K, x):
     for i in range(9):
         x = X(K[8 - i], S_inv(L_inv(x)))
     return x
-
-
-def chunk(arr, n):
-    """Chunk an array into even parts"""
-    for i in range(0, len(arr), n):
-        yield arr[i:i + n]
-
-
-def CTR(key, IV, message):
-    """(En|De)crypt a message given as a bytearray using the Counter mode"""
-    K = expand_key(key)
-    out = bytearray()
-    counter = int.from_bytes(list(IV) + [0 for _ in range(8)], "big")
-    for block in chunk(message, 16):
-        mask = encrypt_block(K, counter.to_bytes(16, "big"))[:len(block)]
-        out.extend(map(xor, block, mask))
-        counter += 1
-    return out
-
-
-def encrypt_CTR(key, message):
-    """Encrypt a message given as a bytearray using the Counter mode"""
-    IV = secrets.token_bytes(8)
-    return IV, CTR(key, IV, message)
-
-
-def decrypt_CTR(key, IV, message):
-    """Decrypt a message given as a bytearray using the Counter mode"""
-    return CTR(key, IV, message)
