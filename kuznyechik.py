@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-"""Source: https://www.rfc-editor.org/rfc/rfc7801.html"""
+"""
+An implementation of Kuznyechik cypher
+
+Sources:
+- GOST R 34.12-2015 (https://www.rfc-editor.org/rfc/rfc7801.html)
+- GOST R 34.13-2015
+"""
 
 from galois import G
 from operator import xor
