@@ -131,7 +131,7 @@ def expand_key(key):
 C = [L(to_bytes(i)) for i in range(1, 33)]
 
 
-def encript_raw_block(K, x):
+def encrypt_raw_block(K, x):
     """Encript a single block represented as an array of 16 bytes"""
     for i in range(9):
         x = L(S(X(K[i], x)))
@@ -139,7 +139,7 @@ def encript_raw_block(K, x):
     return x
 
 
-def decript_raw_block(K, x):
+def decrypt_raw_block(K, x):
     """Decript a single block represented as an array of 16 bytes"""
     x = X(K[9], x)
     for i in range(9):
@@ -147,11 +147,11 @@ def decript_raw_block(K, x):
     return x
 
 
-def encript_block(K, x):
+def encrypt_block(K, x):
     """Encript a single block represented as a 128-bit value"""
-    return from_bytes(encript_raw_block(K, to_bytes(x)))
+    return from_bytes(encrypt_raw_block(K, to_bytes(x)))
 
 
-def decript_block(K, x):
+def decrypt_block(K, x):
     """Decript a single block represented as a 128-bit value"""
-    return from_bytes(decript_raw_block(K, to_bytes(x)))
+    return from_bytes(decrypt_raw_block(K, to_bytes(x)))
