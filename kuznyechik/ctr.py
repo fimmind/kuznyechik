@@ -21,7 +21,7 @@ def _CTR(key, IV, message):
     """(En|De)crypt a message given as a bytearray using the Counter mode"""
     K = expand_key(key)
     out = bytearray()
-    counter = int.from_bytes(list(IV) + [0 for _ in range(8)], "big")
+    counter = IV << (8 * 8)
     for block in _chunk(message, 16):
         mask = encrypt_block(K, counter.to_bytes(16, "big"))[:len(block)]
         out.extend(map(xor, block, mask))
@@ -29,9 +29,13 @@ def _CTR(key, IV, message):
     return out
 
 
+def gen_key():
+    return int.from_bytes(secrets.token_bytes(32), "big")
+
+
 def encrypt(key, message):
     """Encrypt a message given as a bytearray using the Counter mode"""
-    IV = secrets.token_bytes(8)
+    IV = int.from_bytes(secrets.token_bytes(8), "big")
     return IV, _CTR(key, IV, message)
 
 

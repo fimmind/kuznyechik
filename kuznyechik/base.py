@@ -8,6 +8,7 @@ Sources:
 
 from kuznyechik.galois import G
 from operator import xor
+import secrets
 
 pi_vec = bytearray([
     252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
@@ -100,6 +101,10 @@ def L_inv(x):
 
 def F(k, y, x):
     return X(L(S(X(k, y))), x), y
+
+
+def gen_key():
+    return int.from_bytes(secrets.token_bytes(32), "big")
 
 
 def expand_key(key):
