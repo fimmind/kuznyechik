@@ -2,8 +2,8 @@
 """A relatively simple implementation of Kuznyechik cypher"""
 
 import argparse
+from kuznyechik import base
 from kuznyechik import ctr
-from kuznyechik.base import gen_key
 import sys
 
 
@@ -60,7 +60,7 @@ def main():
         out = ctr.decrypt(args.key, args.iv, msg)
     else:
         if args.key is None:
-            KEY = gen_key()
+            KEY = base.gen_key()
             print(f"KEY = {hex(KEY)[2:]}")
         else:
             KEY = args.key
