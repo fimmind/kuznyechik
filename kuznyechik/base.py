@@ -10,6 +10,10 @@ from kuznyechik.galois import G
 from operator import xor
 import secrets
 
+# Представление нелинейного биективного преобразования π: V₈ → V₈ в виде
+# массива значений [π(0), ..., π(255)]. (Здесь и далее V_n обозначает множество
+# всех n-битных двоичных строк)
+# → пункт 4.1.1 из ГОСТа
 pi_vec = bytearray([
     252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
     233, 119, 240, 219, 147, 46, 153, 186, 23, 54, 241, 187, 20, 205, 95, 193,
@@ -28,6 +32,9 @@ pi_vec = bytearray([
     164, 45, 43, 9, 91, 203, 155, 37, 208, 190, 229, 108, 82, 89, 166, 116,
     210, 230, 244, 180, 192, 209, 102, 175, 194, 57, 75, 99, 182
 ])
+
+# Представление π⁻¹, обратного к π, в виде массива [π⁻¹(0), ..., π⁻¹(255)]
+# → пункт 4.1.1 из ГОСТа
 pi_inv_vec = bytearray([
     165, 45, 50, 143, 14, 48, 56, 192, 84, 230, 158, 57, 85, 126, 82, 145, 100,
     3, 87, 90, 28, 96, 7, 24, 33, 114, 168, 209, 41, 198, 164, 63, 224, 39,
@@ -46,68 +53,108 @@ pi_inv_vec = bytearray([
     36, 52, 203, 237, 244, 206, 153, 16, 68, 64, 146, 58, 1, 38, 18, 26, 72,
     104, 245, 129, 139, 199, 214, 32, 10, 8, 0, 76, 215, 116
 ])
-l_vec = [
+
+# Матричное представление линейного преобразования ℓ в поле Галуа G(2^8)
+# → пункт 4.1.2 из ГОСТа
+l_vec: [G] = [
     G(x) for x in
     [148, 32, 133, 16, 194, 192, 1, 251, 1, 192, 194, 16, 133, 32, 148, 1]
 ]
 
 
-def pi(x):
+# Обёртка, представляющая π как функцию
+def pi(x: int) -> int:
     return pi_vec[x]
 
 
-def pi_inv(x):
+# Обёртка, представляющая π⁻¹ как функцию
+def pi_inv(x: int) -> int:
     return pi_inv_vec[x]
 
 
-def l(x):
+# Обёртка, представляющая ℓ как функцию
+def ell(x: bytearray) -> int:
     res = G(0)
     for i in range(16):
         res += l_vec[i] * G(x[i])
     return int(res)
 
 
-def X(k, x):
+# Преобразование X[k]: V₁₂₈ → V₁₂₈ определённое, как
+#     X[k](a) := k + a,
+# где + есть побитовая операция XOR.
+# → пункт 4.2 из ГОСТа
+def X(k: bytearray, x: bytearray) -> bytearray:
     return bytearray(map(xor, k, x))
 
 
-def S(x):
+# Преобразование S: V₁₂₈ → V₁₂₈, применяющее π к каждому байту аргумента
+# → пункт 4.2 из ГОСТа
+def S(x: bytearray) -> bytearray:
     return bytearray(map(pi, x))
 
 
-def S_inv(x):
+# Преобразование S⁻¹, обратное к S, применяющее π⁻¹ к каждому байту аргумента
+# → пункт 4.2 из ГОСТа
+def S_inv(x: bytearray) -> bytearray:
     return bytearray(map(pi_inv, x))
 
 
-def R(x):
-    return bytearray([l(x)]) + x[:15]
+# Преобразование R: V₁₂₈ → V₁₂₈, определённое на строке из 16 байт как
+#     R([a₁₅, ..., a₀]) := [ℓ(a₁₅, ..., a₀)] + [a₁₅, ..., a₁]
+# → пункт 4.2 из ГОСТа
+def R(x: bytearray) -> bytearray:
+    return bytearray([ell(x)]) + x[:15]
 
 
-def L(x):
+# Преобразование L: V₁₂₈ → V₁₂₈, применяющая R 16 раз, то есть
+#     L(x) := R¹⁶(x)
+# → пункт 4.2 из ГОСТа
+def L(x: bytearray) -> bytearray:
     for _ in range(16):
         x = R(x)
     return x
 
 
-def R_inv(x):
-    return x[1:] + bytearray([l(x[1:] + x[:1])])
+# Преобразование R⁻¹, обратное к R. Алгоритм его вычисления дан в ГОСТе без
+# пояснений:
+#     R⁻¹([a₁₅, ..., a₀]) := [a₁₄, ..., a₀] + [ℓ(a₁₄, a₁₃, ..., a₀, a₁₅)]
+# → пункт 4.2 из ГОСТа
+def R_inv(x: bytearray) -> bytearray:
+    return x[1:] + bytearray([ell(x[1:] + x[:1])])
 
 
-def L_inv(x):
+# Преобразование L⁻¹, обратное к L, применяющее R⁻¹ 16 раз
+# → пункт 4.2 из ГОСТа
+def L_inv(x: bytearray) -> bytearray:
     for _ in range(16):
         x = R_inv(x)
     return x
 
 
-def F(k, y, x):
+# Преобразование F[k] двух 128-битных строк, определённое как
+#     F[k](a₁, a₀) := (LSX[k](a₁) + a₀, a₁),
+# где LSX есть композиция отображений L, S и X, то есть
+#     LSX[k](a) = L(S(X[k](a)))
+# → пункт 4.2 из ГОСТа
+def F(k: bytearray, y: bytearray, x: bytearray) -> bytearray:
     return X(L(S(X(k, y))), x), y
 
 
-def gen_key():
-    return int.from_bytes(secrets.token_bytes(32), "big")
+# Итерационные константы, используемые алгоритмом развёртывания ключа,
+#     C_i := L([0, 0, ..., 0, i])
+# для i = 1, 2, ..., 32. В частности,
+#     C_1 = 0x6ea276726c487ab85d27bd10dd849401,
+#     C_2 = 0xdc87ece4d890f4b3ba4eb92079cbeb02,
+#     ...
+# → пункт 4.3 из ГОСТа
+C = [L(i.to_bytes(16, "big")) for i in range(1, 33)]
 
 
-def expand_key(key):
+# Функция, инкапсулирующая алгоритм развёртывания 256-битного ключа шифрования
+# в массив из 128-битных итерационных ключей K_i для i = 1, ..., 10
+# → пункт 4.3 из ГОСТа
+def expand_key(key: int) -> [bytearray]:
     key = key.to_bytes(32, "big")
     K = [key[:16], key[16:]]
     for i in range(4):
@@ -117,19 +164,28 @@ def expand_key(key):
     return K
 
 
-C = [L(i.to_bytes(16, "big")) for i in range(1, 33)]
+# Функция, генерирующая уникальный 256-битных ключ шифрования
+def gen_key():
+    """Generate a unique encryption key"""
+    return int.from_bytes(secrets.token_bytes(32), "big")
 
 
-def encrypt_block(K, x):
-    """Encript a single block represented as an array of 16 bytes"""
+# Функция, инкапсулирующая алгоритм зашифрования
+#     E_(K₁,⋯,K₁₀)(a) := X[K₁₀]LSX[K_₉]...LSX[K_₂]LSX[K_₁](a)
+# → пункт 4.4.1 из ГОСТа
+def encrypt_block(K: [bytearray], x: bytearray):
+    """Encrypt a single block represented as an array of 16 bytes"""
     for i in range(9):
         x = L(S(X(K[i], x)))
     x = X(K[9], x)
     return x
 
 
-def decrypt_block(K, x):
-    """Decript a single block represented as an array of 16 bytes"""
+# Функция, инкапсулирующая алгоритм расшифрования, выполняющая преобразования,
+# обратные преобразованию E_(K₁, ..., K₁₀)
+# → пункт 4.4.2 из ГОСТа
+def decrypt_block(K: [bytearray], x: bytearray):
+    """Decrypt a single block represented as an array of 16 bytes"""
     x = X(K[9], x)
     for i in range(9):
         x = X(K[8 - i], S_inv(L_inv(x)))
