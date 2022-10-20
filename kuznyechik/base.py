@@ -81,8 +81,8 @@ def ell(x: bytearray) -> int:
 
 
 # Преобразование X[k]: V₁₂₈ → V₁₂₈ определённое, как
-#     X[k](a) := k + a,
-# где + есть побитовая операция XOR.
+#     X[k](a) := k ⊕ a,
+# где ⊕ есть побитовая операция XOR.
 # → пункт 4.2 из ГОСТа
 def X(k: bytearray, x: bytearray) -> bytearray:
     return bytearray(map(xor, k, x))
@@ -101,7 +101,7 @@ def S_inv(x: bytearray) -> bytearray:
 
 
 # Преобразование R: V₁₂₈ → V₁₂₈, определённое на строке из 16 байт как
-#     R([a₁₅, ..., a₀]) := [ℓ(a₁₅, ..., a₀)] + [a₁₅, ..., a₁]
+#     R([a₁₅, ..., a₀]) := [ℓ(a₁₅, ..., a₀), a₁₅, ..., a₁]
 # → пункт 4.2 из ГОСТа
 def R(x: bytearray) -> bytearray:
     return bytearray([ell(x)]) + x[:15]
@@ -118,7 +118,7 @@ def L(x: bytearray) -> bytearray:
 
 # Преобразование R⁻¹, обратное к R. Алгоритм его вычисления дан в ГОСТе без
 # пояснений:
-#     R⁻¹([a₁₅, ..., a₀]) := [a₁₄, ..., a₀] + [ℓ(a₁₄, a₁₃, ..., a₀, a₁₅)]
+#     R⁻¹([a₁₅, ..., a₀]) := [a₁₄, ..., a₀, ℓ(a₁₄, ..., a₀, a₁₅)]
 # → пункт 4.2 из ГОСТа
 def R_inv(x: bytearray) -> bytearray:
     return x[1:] + bytearray([ell(x[1:] + x[:1])])
@@ -133,7 +133,7 @@ def L_inv(x: bytearray) -> bytearray:
 
 
 # Преобразование F[k] двух 128-битных строк, определённое как
-#     F[k](a₁, a₀) := (LSX[k](a₁) + a₀, a₁),
+#     F[k](a₁, a₀) := (LSX[k](a₁) ⊕ a₀, a₁),
 # где LSX есть композиция отображений L, S и X, то есть
 #     LSX[k](a) = L(S(X[k](a)))
 # → пункт 4.2 из ГОСТа
