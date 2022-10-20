@@ -8,14 +8,14 @@ Sources:
 
 from operator import xor
 import secrets
-from typing import TypeVar, Iterator
+from typing import TypeVar, Iterator, List
 from kuznyechik.base import expand_key, encrypt_block
 
 T = TypeVar('T')
 
 
 # Функция, разделяющая массив arr на куски из n элементов
-def _chunk(arr: [T], n: int) -> Iterator[[T]]:
+def _chunk(arr: [T], n: int) -> Iterator[List[T]]:
     """Chunk an array into even parts"""
     for i in range(0, len(arr), n):
         yield arr[i:i + n]
